@@ -1,0 +1,31 @@
+server:
+ port: 9099
+spring:
+  datasource:
+   
+    
+    #Desarrollo 
+    origin:
+      jdbc-url: jdbc:sqlserver://localhost:1433;databaseName=INTELIBUS;encrypt=true;trustServerCertificate=true
+      username: admin
+      password: admin
+      driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      
+    
+    destination:
+      jdbc-url: jdbc:sqlserver://131.1.0.130;databaseName=INTELIBUS;encrypt=true;trustServerCertificate=true
+      username: sa
+      password: sa
+      driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver 
+    
+  jpa:
+   
+   properties:
+    hibernate:
+      format_sql: true
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+        
+    show-sql: true
+  hibernate:
+    ddl-auto: none  # Ajusta según lo que necesites
