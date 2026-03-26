@@ -44,21 +44,22 @@ public class DescargasAVLSaltibus {
 
     @Column(name = "intVariable1")
     private Integer intVariable1;
-
+/*
     @Column(name = "dFechaHoraComputadora")
     @Temporal(TemporalType.TIMESTAMP)
     private Date fechaHoraComputadora;
-
+*/
     @Column(name = "intVarControl")
     private Integer intVarControl;
 
     @Column(name = "intStatus")
     private Integer intStatus;
-
+/*
     @Column(name = "created_at")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-
+  */  
+    //ESTE DATO LO INSERTA UN TRIGGER, NO SE NECESITA MAPEAR
    //    @Column(name = "id_uni")
   //  private Long idUni;
 }

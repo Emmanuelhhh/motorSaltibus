@@ -15,9 +15,10 @@ import java.util.Date;
 public class DescargasCARDSaltibus {
 
     @Id
-    @Column(name = "id", nullable = false)
-    private Long id;
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+   private Long id;
+ 
     @Column(name = "id_DGPRS")
     private Long idDGprs;
 
@@ -65,8 +66,8 @@ public class DescargasCARDSaltibus {
     @Column(name = "intFolioTarjeta")
     private Integer intFolioTarjeta;
 
-    @Column(name = "CobroSIR")
-    private BigDecimal cobroSir;
+    //@Column(name = "CobroSIR")
+   // private BigDecimal cobroSir;
 
     @Column(name = "strModem_ID", length = 10)
     private String strModemId;

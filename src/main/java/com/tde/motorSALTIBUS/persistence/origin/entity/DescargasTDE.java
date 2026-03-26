@@ -45,8 +45,8 @@ public class DescargasTDE {
     @Column(name = "intNumOperador")
     private Integer intNumOperador;
 
-    @Column(name = "intBanderaLiquidacion")
-    private Integer intBanderaLiquidacion;
+    //@Column(name = "intBanderaLiquidacion")
+    // private Integer intBanderaLiquidacion;
 
     @Column(name = "intVarControl")
     private Boolean intVarControl; // bit -> Boolean
@@ -56,7 +56,10 @@ public class DescargasTDE {
 
     @Column(name = "intNumApagados_Pta2")
     private Integer intNumApagadosPta2;
-
-    @Column(name = "idAsignacion")
-    private Integer idAsignacion;
+    
+    @Column(name  ="strModem_ID")
+    private String modemId;
+    
+   // @Column(name = "idAsignacion")
+   // private Integer idAsignacion;
 }

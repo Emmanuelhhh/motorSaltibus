@@ -64,8 +64,8 @@ public class DescargasCARD {
     @Column(name = "intFolioTarjeta")
     private Integer intFolioTarjeta;
 
-    @Column(name = "CobroSIR")
-    private BigDecimal cobroSir; // money → BigDecimal
+   // @Column(name = "CobroSIR")
+   // private BigDecimal cobroSir; // money → BigDecimal
 
     @Column(name = "strModem_ID", length = 10)
     private String strModemId;

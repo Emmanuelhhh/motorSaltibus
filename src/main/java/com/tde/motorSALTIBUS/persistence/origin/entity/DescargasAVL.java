@@ -5,8 +5,7 @@ import lombok.*;
 import java.util.Date;
 
 @Entity
-//cambiar nombre de BD 
-//@Table(name = "tblDescargasAVL")
+
 @Table(name = "descargasavl")
 @Data
 @NoArgsConstructor

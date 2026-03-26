@@ -6,9 +6,9 @@ spring:
     
     #Desarrollo 
     origin:
-      jdbc-url: jdbc:sqlserver://localhost:1433;databaseName=INTELIBUS;encrypt=true;trustServerCertificate=true
-      username: admin
-      password: admin
+      jdbc-url: jdbc:sqlserver://131.2.0.98;databaseName=SIGOWEB;encrypt=true;trustServerCertificate=true
+      username: sa
+      password: tde321
       driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
       
     

@@ -47,8 +47,8 @@ public class DescargasTDESaltibus {
     @Column(name = "intNumOperador")
     private Integer intNumOperador;
 
-    @Column(name = "intBanderaLiquidacion")
-    private Integer intBanderaLiquidacion;
+  //  @Column(name = "intBanderaLiquidacion")
+    //private Integer intBanderaLiquidacion;
 
     @Column(name = "intVarControl")
     private Integer intVarControl;
@@ -59,8 +59,10 @@ public class DescargasTDESaltibus {
     @Column(name = "intNumApagados_Pta2")
     private Integer intNumApagadosPta2;
 
-    @Column(name = "intId_Asignacion")
-    private Long intIdAsignacion;
+   // @Column(name = "intId_Asignacion")
+    //private Long intIdAsignacion;
+    @Column(name  ="strModem_ID")
+    private String modemId;
 
     @Column(name = "intStatus")
     private Integer intStatus;

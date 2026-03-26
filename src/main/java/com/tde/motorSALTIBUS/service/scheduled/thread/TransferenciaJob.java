@@ -9,7 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import com.tde.motorSALTIBUS.service.AVLTransferenciaService;
-//import com.tde.motorSALTUBUS.service.PagabusTransferenciaService;
+import com.tde.motorSALTIBUS.service.CARDTransferenciaService;
+import com.tde.motorSALTIBUS.service.TDETransferenciaService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +20,11 @@ public class TransferenciaJob {
     @Autowired
     private AVLTransferenciaService avltransferenciaService;
     
-   // @Autowired 
-   // private PagabusTransferenciaService pagabusTransferenciaService;
+   @Autowired 
+   private CARDTransferenciaService cardTtrasferenciaService;
    
+   @Autowired
+   private TDETransferenciaService tdeTranferenciaService;
     
     private final ExecutorService executorService = Executors.newFixedThreadPool(3);
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
@@ -32,11 +35,10 @@ public class TransferenciaJob {
     @Scheduled(cron = "0 * * * * ?")
     public void ejecutarTransferencia() {
         log.info("Inicia proceso de transferencia de datos");
-
+//CAMBIA CAMBIO TEMPORAL DE INICIO DE 0 A 60 SEGUNDOS
         scheduledExecutorService.schedule(() -> executeSafely(() -> avltransferenciaService.transferirDatos()), 0, TimeUnit.SECONDS);
-       // scheduledExecutorService.schedule(() -> executeSafely(() -> pagabusTransferenciaService.transferirDatos()), 30, TimeUnit.SECONDS);
-       // scheduledExecutorService.schedule(() -> executeSafely(() -> cardTransferenciaService.tranferirDatos(7)), 60, TimeUnit.SECONDS);
-       // scheduledExecutorService.schedule(() -> executeSafely(() -> eventoMiniSigoTransferenciaService.transferirDatos(7)), 90, TimeUnit.SECONDS);
+        scheduledExecutorService.schedule(() -> executeSafely(() -> cardTtrasferenciaService.transferirDatos()), 30, TimeUnit.SECONDS);
+        scheduledExecutorService.schedule(() -> executeSafely(() -> tdeTranferenciaService.transferirDatos()), 60, TimeUnit.SECONDS);
        
         
         

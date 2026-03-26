@@ -2,8 +2,13 @@ package com.tde.motorSALTIBUS.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +17,10 @@ import com.tde.motorSALTIBUS.persistence.origin.repo.*;
 import com.tde.motorSALTIBUS.persistence.destination.entity.*;
 import com.tde.motorSALTIBUS.persistence.destination.repo.*;
 
-
-
 @Service
 public class AVLTransferenciaService {
-	
+    private static final int BATCH_SIZE = 500; // ajusta a tu carga/ventana
+
     @Autowired
     private DescargasAVLRepository descargasAvlRepoO;
     
@@ -29,58 +33,93 @@ public class AVLTransferenciaService {
     	Long lastId = descargasAvlRepoD.findTopByOrderByIdDesc()
                 .map(DescargasAVLSaltibus::getId)
                 .orElse(0L);
-    	System.out.println("ID MAS ALTO "+ lastId); 
-        // Convertimos el Iterable a una lista para poder manipularlo
-        List<DescargasAVL> registros = new ArrayList<>();
-        //borrador. se esta poniento un top de 1 para fines de prueba
-        descargasAvlRepoO.findTop1ByIdGreaterThanOrderByIdAsc(lastId).forEach(registros::add);
-
-        System.out.println("REGISTROS AVL SALTIBUS  " + "imprimir registros");
-
-        // Lista para almacenar los registros que fallaron
-        List<DescargasAVL> registrosFallidos = new ArrayList<>();
-
-        for (DescargasAVL registroO : registros) {
-            try {
-                DescargasAVLSaltibus registroD = convertirADestino(registroO);
-                descargasAvlRepoD.save(registroD); // Guardar registro individualmente
-            } catch (Exception e) {
-                registrosFallidos.add(registroO); // Almacenar los fallidos
-                System.err.println("Error al transferir registro: " + registroO.getStrModemID() + ", " + e.getMessage());
+    	System.out.println("SALTIBUS AVL - LAST ID DESTINO: " + lastId);
+        
+        List<DescargasAVL> origen = leerLoteOrigen(lastId);
+    	  
+        System.out.println("REGISTROS SALTIBUS AVL ENCONTRADOS " + origen.size());
+        
+        if (origen.isEmpty()) {
+            System.out.println("SALTIBUS AVL - Sin registros nuevos para transferir.");
+            System.out.println("SALTIBUS FIN DEL PROCESO AVL");
+            return;
+        }
+        
+        List<DescargasAVLSaltibus> destino = new ArrayList<>(origen.size());  
+        
+        for (DescargasAVL o : origen) {
+            destino.add(convertirADestino(o));
+        }
+        
+        long insertados = 0;
+        long duplicados = 0;
+        long fallidos = 0;
+        
+        try {
+            descargasAvlRepoD.saveAll(destino);
+            insertados = destino.size();
+        } catch (DataIntegrityViolationException bulkEx) {
+            System.err.println("SALTIBUS AVL - saveAll falló (posibles duplicados). Fallback a inserción individual. Detalle: "
+                    + bulkEx.getMostSpecificCause().getMessage());
+            for (DescargasAVLSaltibus d : destino) {
+                try {
+                    descargasAvlRepoD.save(d);
+                    insertados++;
+                } catch (DataIntegrityViolationException dup) {
+                    duplicados++;
+                } catch (Exception e) {
+                    fallidos++;
+                    System.err.println("SALTIBUS AVL - Error insertando id=" + d.getId() + ". Detalle: " + e.getMessage());
+                }
             }
         }
+        
+        Long maxIdLote = obtenerMaxId(origen).orElse(lastId);
 
-        // Elimina solo los registros que no fallaron
-       // registros.removeAll(registrosFallidos);
-       // descargasAvlRepoO.deleteAll(registros);
-        //no se van a eliminar registro para este caso 
-        // se va a usar el mecanismo de buscar el idgprs y id avl 
-
-        System.out.println("FIN DEL PROCESO");
+        System.out.println("SALTIBUS AVL - Leídos: " + origen.size()
+                + " | Insertados: " + insertados
+                + " | Duplicados: " + duplicados
+                + " | Fallidos: " + fallidos
+                + " | MaxIdLote: " + maxIdLote);
+        System.out.println("SALTIBUS FIN DEL PROCESO AVL");
     }
 
-    
+    private List<DescargasAVL> leerLoteOrigen(Long lastId) {
+        Pageable page = PageRequest.of(0, BATCH_SIZE, Sort.by(Sort.Direction.ASC, "id"));
+        // Se usa funcion temporal 
+        return descargasAvlRepoO.findByIdGreaterThan(lastId);
+       // return descargasAvlRepoO.findByIdGreaterThan(lastId, page);
 
-private DescargasAVLSaltibus convertirADestino(DescargasAVL origen) {
-	DescargasAVLSaltibus destino = new DescargasAVLSaltibus();
+    }
 
-    destino.setId(origen.getId());
-    destino.setIntTipoAVL(origen.getIntTipoAVL());
-    destino.setStrModemID(origen.getStrModemID());
-    destino.setFLongitudGrad(origen.getFLongitudGrad());
-    destino.setFLatitudGrad(origen.getFLatitudGrad());
-    destino.setIntVelocidad(origen.getIntVelocidad());
-    destino.setIntNumSat(origen.getIntNumSat());
-    destino.setFechaHoraSat(origen.getFechaHoraSat());
-    destino.setIntTipoEvento(origen.getIntTipoEvento());
-    destino.setIntVariable1(origen.getIntVariable1());
-    destino.setFechaHoraComputadora(origen.getFechaHoraComputadora());
-    destino.setIntVarControl(origen.getIntVarControl());
+    private Optional<Long> obtenerMaxId(List<DescargasAVL> registros) {
+        Long max = null;
+        for (DescargasAVL r : registros) {
+            if (r.getId() == null) {
+                continue;
+            }
+            if (max == null || r.getId() > max) {
+                max = r.getId();
+            }
+        }
+        return Optional.ofNullable(max);
+    }
 
-    // Campos adicionales en DescargasAvlD que no están en DescargasAvlO
-    // Puedes inicializar `avl` como null o asignar un valor predeterminado
-  //  destino.setAvl(null);  // O asigna un objeto `Avl` según tu lógica.
+    private DescargasAVLSaltibus convertirADestino(DescargasAVL origen) {
+        DescargasAVLSaltibus destino = new DescargasAVLSaltibus();
 
-    return destino;
-}
+        destino.setId(origen.getId());
+        destino.setIntTipoAVL(origen.getIntTipoAVL());
+        destino.setStrModemID(origen.getStrModemID());
+        destino.setFLongitudGrad(origen.getFLongitudGrad());
+        destino.setFLatitudGrad(origen.getFLatitudGrad());
+        destino.setIntVelocidad(origen.getIntVelocidad());
+        destino.setIntNumSat(origen.getIntNumSat());
+        destino.setFechaHoraSat(origen.getFechaHoraSat());
+        destino.setIntTipoEvento(origen.getIntTipoEvento());
+        destino.setIntVariable1(origen.getIntVariable1());
+        destino.setIntVarControl(origen.getIntVarControl());
+
+        return destino;
+    }
 }

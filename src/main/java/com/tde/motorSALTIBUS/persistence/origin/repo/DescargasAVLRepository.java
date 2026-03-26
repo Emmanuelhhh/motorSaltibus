@@ -1,25 +1,33 @@
 package com.tde.motorSALTIBUS.persistence.origin.repo;
 
-import java.util.Optional;
+import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 import com.tde.motorSALTIBUS.persistence.origin.entity.DescargasAVL;
 
 
 @Repository
 public interface DescargasAVLRepository extends CrudRepository<DescargasAVL, Long> {
 
-    // Puedes agregar consultas adicionales si las necesitas:
-    // List<TblDescargasAVL> findByIntTipoAVL(Integer tipo);
+ 
+	//nueva funcion, temporalmente agrega query nativo
+	@Query(value ="SELECT TOP (200) * " +
+			"FROM [SIGOWEB].[dbo].[tblDescargasAVL] " +
+			"WHERE id > :lastId "
+			+ "and strModemID IN ('4764366700', '4677018454', '7000267014', '7000267149', '7000267442', '7000267221', '7000267233', '7000267359', '7000266978', '7000267458', '7000267101', '7000267421', '7000267348', '7000267225') "
+			+ "order by id", nativeQuery = true)
+	List<DescargasAVL> findByIdGreaterThan(
+			Long lastId);
 	
-	@Query(value ="SELECT TOP (1) * " +
-	"FROM [INTELIBUS].[dbo].[tblDescargasAVL] " +
-	"WHERE id = :id order by id", nativeQuery = true)
-	Optional<DescargasAVL>  findById(@Param("id") Long id); 
+	//esta debe quedar al final
+	List<DescargasAVL> findByIdGreaterThan(
+			Long lastId,
+	        Pageable pageable);
 	
 	
-	Iterable<DescargasAVL> findTop1ByIdGreaterThanOrderByIdAsc(Long id);
+
 }
